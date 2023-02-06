@@ -1,0 +1,27 @@
+# Godot-specific ignores
+.godot/
+*.translation
+#.godot/editor/
+#.godot/shader_cache/
+#!.godot/imported/*
+#!.godot/exported/*
+#!.godot/uid_cached.bin
+#export_presets.cfg
+
+# Mono-specific ignores
+.mono/
+data_*/
+
+# MAPOD4D
+/trash/*
+/mapod4d_multiverse/*
+!/mapod4d_multiverse/readme.md
+/bin/html5/*
+!/bin/html5/readme.md
+/bin/win64/*
+!/bin/win64/readme.md
+/bin/linux/*
+!/bin/linux/readme.md
+/bin/test/*
+!/bin/test/readme.md
+/test/*
