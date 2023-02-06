@@ -1,0 +1,115 @@
+[gd_scene load_steps=8 format=3 uid="uid://di0vt85exi5j0"]
+
+[ext_resource type="Script" path="res://mapod4d_launcher.gd" id="1_ctjb6"]
+[ext_resource type="Texture2D" uid="uid://dinma68nwsanw" path="res://icon.svg" id="2_sm2kb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w0hlu"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_37jrr"]
+bg_color = Color(0.360784, 0.360784, 0.360784, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0pek0"]
+bg_color = Color(0.141176, 0.141176, 0.141176, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mpy8n"]
+bg_color = Color(0.360784, 0.360784, 0.360784, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s7r48"]
+bg_color = Color(0.94902, 0.94902, 0, 1)
+
+[node name="Mapod4dLauncher" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ctjb6")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_w0hlu")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 46
+text = "MAPOD4DL"
+horizontal_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("2_sm2kb")
+stretch_mode = 4
+
+[node name="MarginContainer2" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 63
+theme_override_constants/margin_right = 100
+
+[node name="Msg" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "NEWL"
+horizontal_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 140
+theme_override_constants/margin_top = 47
+theme_override_constants/margin_right = 140
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 73
+
+[node name="Download" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.662745, 0.776471, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.219608, 0.219608, 0.219608, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_37jrr")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_0pek0")
+disabled = true
+text = "DOWNLOAD"
+
+[node name="Update" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.662745, 0.776471, 1, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_37jrr")
+disabled = true
+text = "UPDATE"
+
+[node name="Load" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.662745, 0.776471, 1, 1)
+theme_override_colors/font_hover_color = Color(0.188235, 0.188235, 0.772549, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_mpy8n")
+theme_override_styles/hover = SubResource("StyleBoxFlat_s7r48")
+text = "LOAD"
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+timeout = 10.0
