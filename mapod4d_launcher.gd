@@ -30,7 +30,7 @@ const WK_PATH = 'wk'
 const UPDATES_PATH = WK_PATH + '/updates'
 const UPDATER = "updater"
 const UPDATER_PATH = WK_PATH + "/" + UPDATER
-const MULTTIV = "https://sv001.mapod4d.it"
+const MULTIVSVR = "https://sv001.mapod4d.it"
 
 # ----- exported variables
 
@@ -41,8 +41,10 @@ var _base_path = null
 var _dir = null
 var _server = null
 var _clients = []
+## request status
 var _request = null
 var _exe_ext = ""
+var _update_pre = ""
 
 var _data_updater = null
 var _data_launcher = null
@@ -55,6 +57,7 @@ var _data_mapod4d = null
 @onready var _button_quit = %Quit
 @onready var _label_msg = %Msg
 @onready var _h_request_info = $HTTPRequestInfo
+@onready var _h_request_download = $HTTPRequestDowload
 
 
 # ----- optional built-in virtual _init method
@@ -67,16 +70,17 @@ func _ready():
 	match OS.get_name():
 		"Windows", "UWP":
 			_exe_ext = ".exe"
+			_update_pre = "w"
 		"macOS":
-			pass
+			_update_pre = "m"
 		"Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD":
-			pass
+			_update_pre = "l"
 		"Android":
-			pass
+			_update_pre = "a"
 		"iOS":
-			pass
+			_update_pre = "i"
 		"Web":
-			pass
+			_update_pre = "e"
 	if OS.has_feature('editor'):
 		_base_path = 'test'
 	if OS.has_feature('standalone'):
@@ -160,31 +164,18 @@ func _block_istance():
 #	poppo = FileAccess.open('poppo.lck', FileAccess.WRITE)
 
 
-## check launcher version
-func _check_launcher_upd():
-	var url = MULTTIV + "/api/software/m4dlauncherc2/?format=json"
+## start download update info and set status (_request)
+func _check_upd(request: String):
+	var url = MULTIVSVR + "/api/software/"
+	url += _update_pre + request 
+	url += "/?format=json"
 	var headers = ["Content-Type: application/json"]
 	print(url)
-	_request = "launcher"
-	_h_request_info.request(url, headers, true, HTTPClient.METHOD_GET)
-
-
-func _check_updater_upd():
-	var url = MULTTIV + "/api/software/m4dupdaterc2/?format=json"
-	var headers = ["Content-Type: application/json"]
-	print(url)
-	_request = "updater"
-	_h_request_info.request(url, headers, true, HTTPClient.METHOD_GET)
-
-
-func _check_upd(software: String):
-	var url = MULTTIV + "/api/software/" + software + "/?format=json"
-	var headers = ["Content-Type: application/json"]
-	print(url)
-	_request = software
+	_request = request
 	_h_request_info.request(url, headers, HTTPClient.METHOD_GET)
 
 
+## end download update
 func _on_request_info_completed(result, response_code, headers, body):
 	print(str(headers))
 	print(str(response_code))
@@ -216,14 +207,44 @@ func _on_request_info_completed(result, response_code, headers, body):
 		_button_load.disabled = false
 
 
+## download update, not mapod4d
+func _download_upd():
+	var ret_val = false
+	var url = null
+	match(_request):
+		"m4dupdaterc2":
+			url = _data_updater.link
+			ret_val = true
+		"m4dlauncherc2":
+			url = _data_launcher.link
+			ret_val = true
+	print(url)
+	return ret_val
+
+
+## download update only mapod4d
+func _download_mapod4d_upd():
+	pass
+
+
+## check if "updater" update is required
 func _updater_upd():
 	if _dir != null:
 		if _dir.file_exists(UPDATER_PATH + _exe_ext):
 			var exit_code = OS.execute(
 					UPDATER_PATH + _exe_ext, ["++", "-m4dver"])
 			print(exit_code)
-#			_check_upd("m4dlauncherc2")
+			# load current version
+			# check version
+			# if update is required
+			#	download
+			#	_button_download.disabled = false
+			#	_label_msg.text = tr("UPDATERUPD")
+			# else
+			#	not required -> next update
+			#	_check_upd("m4dlauncherc2")
 		else:
+			## udater file not found download required
 			_button_download.disabled = false
 			_label_msg.text = tr("UPDATERUPD")
 
@@ -308,11 +329,13 @@ func _on_button_download_pressed():
 	match(_request):
 		"m4dupdaterc2":
 			print("download m4dupdaterc2")
-			_button_download.disabled = true
-			_button_update.disabled = false
-			_label_msg.text = tr("UPDATERUPDDW")
+			if _download_upd():
+				_button_download.disabled = true
+				_button_update.disabled = false
+				_label_msg.text = tr("UPDATERUPDDW")
 		"m4dlauncherc2":
 			print("download m4dlauncherc2")
+			_download_upd()
 			_button_download.disabled = true
 			_button_update.disabled = false
 			_label_msg.text = tr("LAUNCHERUPDDW")

@@ -135,3 +135,5 @@ text = "QUIT"
 
 [node name="HTTPRequestInfo" type="HTTPRequest" parent="."]
 timeout = 10.0
+
+[node name="HTTPRequestDowload" type="HTTPRequest" parent="."]
