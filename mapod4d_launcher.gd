@@ -18,11 +18,18 @@ extends Control
 # ----- enums
 
 # ----- constants
-const VERSION = [10, 0, 0, 0]
+const M4DVERSION = {
+	'v1': 20,
+	'v2': 0,
+	'v3': 0,
+	'v4': 0
+}
+const M4DNAME = "mapod4d_launcher"
+
 const WK_PATH = 'wk'
 const UPDATES_PATH = WK_PATH + '/updates'
-const FILELUPDATE = "mplu"
-const FILEFROMUPDATE = WK_PATH + "/" + FILELUPDATE
+const UPDATER = "updater"
+const UPDATER_PATH = WK_PATH + "/" + UPDATER
 const MULTTIV = "https://sv001.mapod4d.it"
 
 # ----- exported variables
@@ -35,13 +42,11 @@ var _dir = null
 var _server = null
 var _clients = []
 var _request = null
+var _exe_ext = ""
 
-var _data_launcher = null
-var _flag_upd_launcher = false
 var _data_updater = null
-var _flag_upd_updater = false
+var _data_launcher = null
 var _data_mapod4d = null
-var _flag_upd_mapod4d = false
 
 # ----- onready variables
 @onready var _button_download = %Download
@@ -59,12 +64,25 @@ var _flag_upd_mapod4d = false
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	_block_istance()
+	match OS.get_name():
+		"Windows", "UWP":
+			_exe_ext = ".exe"
+		"macOS":
+			pass
+		"Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD":
+			pass
+		"Android":
+			pass
+		"iOS":
+			pass
+		"Web":
+			pass
 	if OS.has_feature('editor'):
 		_base_path = 'test'
 	if OS.has_feature('standalone'):
-		_base_path = OS.get_executable_path().get_base_dir()	## funzia sicuramente anche in linux
+		_base_path = OS.get_executable_path().get_base_dir()
 
-	_button_update.pressed.connect(_on_button_download_pressed)
+	_button_download.pressed.connect(_on_button_download_pressed)
 	_button_update.pressed.connect(_on_button_update_pressed)
 	_button_load.pressed.connect(_on_button_load_pressed)
 	_button_quit.pressed.connect(_on_button_quit_pressed)
@@ -76,10 +94,17 @@ func _ready():
 		_button_update.visible = false
 	else:
 		_build_dirs()
-		_check_upd("m4dlauncherc2")
+		_check_upd("m4dupdaterc2")
 
 
 # ----- remaining built-in virtual methods
+func _enter_tree():
+	var args = OS.get_cmdline_user_args()
+	print(args)
+	if "-m4dver" in args:
+		_write_version()
+		get_tree().quit()
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
@@ -102,6 +127,21 @@ func _process(_delta):
 # ----- public methods
 
 # ----- private methods
+## write version file
+func _write_version():
+		print(M4DVERSION)
+		var json_data = JSON.stringify(M4DVERSION)
+		var base_dir = OS.get_executable_path().get_base_dir()
+		if OS.has_feature('editor'):
+			base_dir = "test"
+		var file_name = base_dir + "/" + M4DNAME + ".json"
+		print(file_name)
+		var file = FileAccess.open(file_name, FileAccess.WRITE)
+		if file != null:
+			file.store_string(json_data)
+			file.flush()
+
+
 ## prevent multiple instance
 func _block_istance():
 	## create server and prevent multiple instance
@@ -142,7 +182,7 @@ func _check_upd(software: String):
 	var headers = ["Content-Type: application/json"]
 	print(url)
 	_request = software
-	_h_request_info.request(url, headers, true, HTTPClient.METHOD_GET)
+	_h_request_info.request(url, headers, HTTPClient.METHOD_GET)
 
 
 func _on_request_info_completed(result, response_code, headers, body):
@@ -152,14 +192,14 @@ func _on_request_info_completed(result, response_code, headers, body):
 		var json = JSON.new()
 		json.parse(body.get_string_from_utf8())
 		match(_request):
-			"m4dlauncherc2":
-				_data_launcher = json.get_data()
-				print(_data_launcher)
-				_launcher_upd()
 			"m4dupdaterc2":
 				_data_updater = json.get_data()
 				print(_data_updater)
 				_updater_upd()
+			"m4dlauncherc2":
+				_data_launcher = json.get_data()
+				print(_data_launcher)
+				_launcher_upd()
 			"mapod4dc2":
 				_data_mapod4d = json.get_data()
 				print(_data_mapod4d)
@@ -167,25 +207,39 @@ func _on_request_info_completed(result, response_code, headers, body):
 	else:
 		print("error " + str(response_code))
 		match(_request):
+			"m4dupdaterc2":
+				_label_msg.text = tr("UPDATERUPDERROR")
 			"m4dlauncherc2":
 				_label_msg.text = tr("LAUCHERUPDERROR")
-
-
-func _launcher_upd():
-	if _upd(VERSION[0], VERSION[1], VERSION[2] , VERSION[3], _data_launcher):
-		_button_download.disabled = false
-		_label_msg.text = tr("LAUCHERUPD")
-		_flag_upd_launcher = true
-	else:
-		_check_upd("m4dupdaterc2")
+			"mapod4dc2":
+				_label_msg.text = tr("MAPOD4DUPDERROR")
+		_button_load.disabled = false
 
 
 func _updater_upd():
-	_check_upd("mapod4dc2")
+	if _dir != null:
+		if _dir.file_exists(UPDATER_PATH + _exe_ext):
+			var exit_code = OS.execute(
+					UPDATER_PATH + _exe_ext, ["++", "-m4dver"])
+			print(exit_code)
+#			_check_upd("m4dlauncherc2")
+		else:
+			_button_download.disabled = false
+			_label_msg.text = tr("UPDATERUPD")
+
+
+func _launcher_upd():
+	if _upd(M4DVERSION.v1, M4DVERSION.v2, M4DVERSION.v3, M4DVERSION.v4,
+			_data_launcher):
+		_button_download.disabled = false
+		_label_msg.text = tr("LAUCHERUPD")
+	else:
+		_check_upd("mapod4dc2")
 
 
 func _mapod4d_upd():
-	pass
+	_button_download.disabled = false
+	_label_msg.text = tr("MAPOD4DUPD")
 
 
 func _upd(
@@ -252,23 +306,43 @@ func _load_mapod4d():
 func _on_button_download_pressed():
 	print("download pressed")
 	match(_request):
-		"m4dlauncherc2":
-			print("download m4dlauncherc2")
 		"m4dupdaterc2":
 			print("download m4dupdaterc2")
+			_button_download.disabled = true
+			_button_update.disabled = false
+			_label_msg.text = tr("UPDATERUPDDW")
+		"m4dlauncherc2":
+			print("download m4dlauncherc2")
+			_button_download.disabled = true
+			_button_update.disabled = false
+			_label_msg.text = tr("LAUNCHERUPDDW")
 		"mapod4dc2":
 			print("download mapod4dc2")
+			_button_download.disabled = true
+			_button_update.disabled = false
+			_label_msg.text = tr("MAPOD4DUPDDW")
 
 
 func _on_button_update_pressed():
 	print("update pressed")
 	match(_request):
-		"m4dlauncherc2":
-			print("update m4dlauncherc2")
 		"m4dupdaterc2":
 			print("update m4dupdaterc2")
+			_button_update.disabled = true
+			_label_msg.text = tr("UPDATERUPDOK")
+			_check_upd("m4dlauncherc2")
+		"m4dlauncherc2":
+			print("update m4dlauncherc2")
+			_button_update.disabled = true
+			_label_msg.text = tr("LAUNCHERUPDOK")
+			## run updater
+			get_tree().quit()
 		"mapod4dc2":
 			print("update mapod4dc2")
+			_button_update.disabled = true
+			_label_msg.text = tr("MAPOD4DUPDOK")
+			_button_load.disabled = false
+
 #	var exe = _base_path + WK_PATH + "/updater.exe"
 #	print("run " + exe)
 #	var pid = OS.create_process(exe, ["++ mapod4du"])
