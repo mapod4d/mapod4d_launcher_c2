@@ -43,6 +43,7 @@ var _server = null
 var _clients = []
 ## request status
 var _request = null
+var _info = ""
 var _exe_ext = ""
 var _update_pre = ""
 
@@ -82,7 +83,7 @@ func _ready():
 		"Web":
 			_update_pre = "e"
 	if OS.has_feature('editor'):
-		_base_path = 'test'
+		_base_path = 'test/'
 	if OS.has_feature('standalone'):
 		_base_path = OS.get_executable_path().get_base_dir()
 
@@ -93,6 +94,8 @@ func _ready():
 
 	_h_request_info.request_completed.connect(
 			_on_request_info_completed)
+	_h_request_download.request_completed.connect(
+			_on_request_download_completed)
 
 	if _base_path == null:
 		_button_update.visible = false
@@ -112,6 +115,22 @@ func _enter_tree():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
+	## download msg
+	if _h_request_download.get_http_client_status() == 7:
+		var bs = _h_request_download.get_downloaded_bytes() 
+		var db = _h_request_download.get_body_size()
+		var perc = "%.2f" % 0
+		if db > 0:
+			perc = "%.2f" % ((float(bs) / float(db)) * 100.0)
+		var data = {
+			"bs": str(bs),
+			"db": str(db),
+			"perc": str(perc),
+			"info": str(_info)
+		}
+		
+		_label_msg.text = "{info} BS {bs} DB {db} P {perc}".format(data)
+		
 	## simple aswer protocol raw implementation
 	for client in _clients:
 		if client.get_status() == StreamPeerTCP.STATUS_NONE:
@@ -175,7 +194,7 @@ func _check_upd(request: String):
 	_h_request_info.request(url, headers, HTTPClient.METHOD_GET)
 
 
-## end download update
+## end download update info
 func _on_request_info_completed(result, response_code, headers, body):
 	print(str(headers))
 	print(str(response_code))
@@ -186,39 +205,119 @@ func _on_request_info_completed(result, response_code, headers, body):
 			"m4dupdaterc2":
 				_data_updater = json.get_data()
 				print(_data_updater)
+				_label_msg.text = tr("UPDATERINFOOK")
 				_updater_upd()
 			"m4dlauncherc2":
 				_data_launcher = json.get_data()
 				print(_data_launcher)
+				_label_msg.text = tr("LAUCHERINFOOK")
 				_launcher_upd()
 			"mapod4dc2":
 				_data_mapod4d = json.get_data()
 				print(_data_mapod4d)
+				_label_msg.text = tr("MAPOD4DINFOOK")
 				_mapod4d_upd()
 	else:
 		print("error " + str(response_code))
 		match(_request):
 			"m4dupdaterc2":
-				_label_msg.text = tr("UPDATERUPDERROR")
+				_label_msg.text = tr("UPDATERINFOERROR")
 			"m4dlauncherc2":
-				_label_msg.text = tr("LAUCHERUPDERROR")
+				_label_msg.text = tr("LAUCHERINFOERROR")
 			"mapod4dc2":
-				_label_msg.text = tr("MAPOD4DUPDERROR")
+				_label_msg.text = tr("MAPOD4DINFOERROR")
 		_button_load.disabled = false
+
+
+## check if "updater" update is required
+func _updater_upd():
+	var do_download = false
+	if _dir != null:
+		if _dir.file_exists(UPDATER_PATH + _exe_ext):
+			var exit_code = OS.execute(
+					_base_path + UPDATER_PATH + _exe_ext, ["++", "-m4dver"])
+			print(exit_code)
+			if _dir.file_exists(UPDATER_PATH + ".json"):
+				var file = FileAccess.open(
+					_base_path + UPDATER_PATH + ".json", FileAccess.READ)
+				if file != null:
+					var data = file.get_as_text()
+					var data_json = JSON.parse_string(data)
+					if data_json != null:
+						if "v1" in data_json and \
+							"v2" in data_json and \
+							"v3" in data_json and \
+							"v4" in data_json:
+							if _version_compare(
+								data_json.v1, 
+								data_json.v2,
+								data_json.v3,
+								data_json.v4,
+								_data_updater
+							):
+								## updater old download required
+								do_download = true
+							else:
+								## update not required -> next update
+								_check_upd("m4dlauncherc2")
+						else:
+							## updater version invalid download required
+							do_download = true
+					else:
+						## updater version invalid download required
+						do_download = true
+			
+			else:
+				## updater file invalid download required
+				do_download = true
+		else:
+			## updater file not found download required
+			do_download = true
+			
+		if do_download:
+			_button_download.disabled = false
+			_label_msg.text = tr("UPDATERVER")
+
+
+func _launcher_upd():
+	if _version_compare(
+			M4DVERSION.v1, M4DVERSION.v2, M4DVERSION.v3, M4DVERSION.v4,
+			_data_launcher):
+		_button_download.disabled = false
+		_label_msg.text = tr("LAUCHERVER")
+	else:
+		_check_upd("mapod4dc2")
+
+
+func _mapod4d_upd():
+	_button_download.disabled = false
+	_label_msg.text = tr("MAPOD4DVER")
 
 
 ## download update, not mapod4d
 func _download_upd():
 	var ret_val = false
 	var url = null
+	var download_file = null
 	match(_request):
 		"m4dupdaterc2":
+			download_file = _base_path + UPDATES_PATH + "updater"
 			url = _data_updater.link
-			ret_val = true
+			_button_download.disabled = true
+			_info = tr("UPDATERINFO")
 		"m4dlauncherc2":
+			download_file = _base_path + UPDATES_PATH + "launcher"
 			url = _data_launcher.link
-			ret_val = true
+			_button_download.disabled = true
+			_info = tr("LAUNCHERINFO")
+	print("DOWNLOAD")
+	print(download_file)
 	print(url)
+	if url != null:
+		_h_request_download.download_file = download_file
+		var error = _h_request_download.request(url)
+		if error == OK:
+			ret_val = true
 	return ret_val
 
 
@@ -227,43 +326,56 @@ func _download_mapod4d_upd():
 	pass
 
 
-## check if "updater" update is required
-func _updater_upd():
+## end download update
+func _on_request_download_completed(result, response_code, headers, body):
+	print(str(headers))
+	print(str(response_code))
+	if result == HTTPRequest.RESULT_SUCCESS:
+		var json = JSON.new()
+		json.parse(body.get_string_from_utf8())
+		match(_request):
+			"m4dupdaterc2":
+				_data_updater = json.get_data()
+				print(_data_updater)
+				_button_download.disabled = true
+				_button_update.disabled = false
+				_label_msg.text = tr("UPDATERDWOK")
+			"m4dlauncherc2":
+				_data_launcher = json.get_data()
+				print(_data_launcher)
+				_button_download.disabled = true
+				_button_update.disabled = false
+				_label_msg.text = tr("LAUCHERDWOK")
+			"mapod4dc2":
+				_data_mapod4d = json.get_data()
+				print(_data_mapod4d)
+	else:
+		print("error " + str(response_code))
+		match(_request):
+			"m4dupdaterc2":
+				_label_msg.text = tr("UPDATERDWERROR")
+			"m4dlauncherc2":
+				_label_msg.text = tr("LAUCHERDWERROR")
+			"mapod4dc2":
+				_label_msg.text = tr("MAPOD4DDWERROR")
+		_button_load.disabled = false
+
+
+func _do_updater_update():
+	var ret_val = false
 	if _dir != null:
 		if _dir.file_exists(UPDATER_PATH + _exe_ext):
-			var exit_code = OS.execute(
-					UPDATER_PATH + _exe_ext, ["++", "-m4dver"])
-			print(exit_code)
-			# load current version
-			# check version
-			# if update is required
-			#	download
-			#	_button_download.disabled = false
-			#	_label_msg.text = tr("UPDATERUPD")
-			# else
-			#	not required -> next update
-			#	_check_upd("m4dlauncherc2")
-		else:
-			## udater file not found download required
-			_button_download.disabled = false
-			_label_msg.text = tr("UPDATERUPD")
+			_dir.remove(UPDATER_PATH + _exe_ext)
+		if _dir.file_exists(UPDATES_PATH + "updater"):
+			var error = _dir.rename(
+					UPDATES_PATH + "updater",
+					UPDATER_PATH + _exe_ext)
+			if error == OK:
+				ret_val = true
+	return ret_val
 
 
-func _launcher_upd():
-	if _upd(M4DVERSION.v1, M4DVERSION.v2, M4DVERSION.v3, M4DVERSION.v4,
-			_data_launcher):
-		_button_download.disabled = false
-		_label_msg.text = tr("LAUCHERUPD")
-	else:
-		_check_upd("mapod4dc2")
-
-
-func _mapod4d_upd():
-	_button_download.disabled = false
-	_label_msg.text = tr("MAPOD4DUPD")
-
-
-func _upd(
+func _version_compare(
 		current_v1: int, current_v2: int, current_v3: int, current_v4: int, 
 		data):
 	var retVal = false
@@ -279,19 +391,6 @@ func _upd(
 				if data.v4 > current_v4:
 					retVal = true
 	return retVal
-
-
-#func _check_laucher_update_file():
-#	if _dir != null:
-#		if _dir.file_exists(FILEFROMUPDATE):
-#			_button_update.disabled = false
-#
-### check update file presence
-#func _check_updater_update_online():
-#	var url = MULTTIV + "/api/software/m4dupdater2/?format=json"
-#	var headers = ["Content-Type: application/json"]
-#	_h_request_laucher_upd.request(url, headers, true, HTTPClient.METHOD_GET)
-#	return false
 
 
 ## build portable structure
@@ -329,10 +428,7 @@ func _on_button_download_pressed():
 	match(_request):
 		"m4dupdaterc2":
 			print("download m4dupdaterc2")
-			if _download_upd():
-				_button_download.disabled = true
-				_button_update.disabled = false
-				_label_msg.text = tr("UPDATERUPDDW")
+			_download_upd()
 		"m4dlauncherc2":
 			print("download m4dlauncherc2")
 			_download_upd()
@@ -352,12 +448,15 @@ func _on_button_update_pressed():
 		"m4dupdaterc2":
 			print("update m4dupdaterc2")
 			_button_update.disabled = true
-			_label_msg.text = tr("UPDATERUPDOK")
-			_check_upd("m4dlauncherc2")
+			if _do_updater_update():
+				_label_msg.text = tr("UPDATEROK")
+				_check_upd("m4dlauncherc2")
+			else:
+				_label_msg.text = tr("UPDATERERROR")
 		"m4dlauncherc2":
 			print("update m4dlauncherc2")
 			_button_update.disabled = true
-			_label_msg.text = tr("LAUNCHERUPDOK")
+			_label_msg.text = tr("LAUNCHEROK")
 			## run updater
 			get_tree().quit()
 		"mapod4dc2":
