@@ -9,14 +9,14 @@ bg_color = Color(0, 0, 0, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_37jrr"]
 bg_color = Color(0.360784, 0.360784, 0.360784, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s7r48"]
+bg_color = Color(0.94902, 0.94902, 0, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0pek0"]
 bg_color = Color(0.141176, 0.141176, 0.141176, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mpy8n"]
 bg_color = Color(0.360784, 0.360784, 0.360784, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s7r48"]
-bg_color = Color(0.94902, 0.94902, 0, 1)
 
 [node name="Mapod4dLauncher" type="Control"]
 layout_mode = 3
@@ -66,9 +66,10 @@ theme_override_constants/margin_right = 100
 
 [node name="Msg" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer2"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
-text = "NEWL"
+text = "STARTMSG"
 horizontal_alignment = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
@@ -85,9 +86,11 @@ theme_override_constants/separation = 73
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.662745, 0.776471, 1, 1)
+theme_override_colors/font_hover_color = Color(0.188235, 0.188235, 0.772549, 1)
 theme_override_colors/font_disabled_color = Color(0.219608, 0.219608, 0.219608, 1)
 theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxFlat_37jrr")
+theme_override_styles/hover = SubResource("StyleBoxFlat_s7r48")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_0pek0")
 disabled = true
 text = "DOWNLOAD"
@@ -96,8 +99,12 @@ text = "DOWNLOAD"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.662745, 0.776471, 1, 1)
+theme_override_colors/font_hover_color = Color(0.188235, 0.188235, 0.772549, 1)
+theme_override_colors/font_disabled_color = Color(0.219608, 0.219608, 0.219608, 1)
 theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxFlat_37jrr")
+theme_override_styles/hover = SubResource("StyleBoxFlat_s7r48")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_0pek0")
 disabled = true
 text = "UPDATE"
 
@@ -106,10 +113,27 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.662745, 0.776471, 1, 1)
 theme_override_colors/font_hover_color = Color(0.188235, 0.188235, 0.772549, 1)
+theme_override_colors/font_disabled_color = Color(0.219608, 0.219608, 0.219608, 1)
 theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxFlat_mpy8n")
 theme_override_styles/hover = SubResource("StyleBoxFlat_s7r48")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_0pek0")
+disabled = true
 text = "LOAD"
 
-[node name="HTTPRequest" type="HTTPRequest" parent="."]
+[node name="Quit" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.662745, 0.776471, 1, 1)
+theme_override_colors/font_hover_color = Color(0.188235, 0.188235, 0.772549, 1)
+theme_override_colors/font_disabled_color = Color(0.219608, 0.219608, 0.219608, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_mpy8n")
+theme_override_styles/hover = SubResource("StyleBoxFlat_s7r48")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_0pek0")
+text = "QUIT"
+
+[node name="HTTPRequestInfo" type="HTTPRequest" parent="."]
 timeout = 10.0
+
+[node name="HTTPRequestDowload" type="HTTPRequest" parent="."]

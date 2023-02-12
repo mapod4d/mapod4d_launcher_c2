@@ -1,6 +1,10 @@
 keys,en,it
 MAPOD4DL,MAPOD4D Launcher C2,MAPOD4D Launcher C2
-UPDATE,START UPDATE LAUNCHER,INIZIA L’AGGIORNAMENTO DEL LAUNCHER
-DOWNLOAD,DOWNLOAD LAST LAUNCHER,SCARICA L’ULTIMO LAUNCHER
+UPDATE,DO UPDATES,ESEGUI L’AGGIORNAMENTI
+DOWNLOAD,DOWNLOAD UPDATES,SCARICA AGGIORNAMENTI
 LOAD,STAR MAPOD4D MULTIVERSE,AVVIA MAPOD4D MULTIVERSE
-NEWL,New version of launcher available,Nyuova versione del launcher disponibile
+STARTMSG,Check launcher updates,Controllo aggiornamenti launcher
+LAUCHERUPDERROR,Error when finding launcher update,Errore nella ricerca aggiornamento del launcher
+LAUCHERUPD,New version of launcher available,Nuova versione del launcher disponibile
+QUIT,EXIT,ESCI
+CSUPDATER,Cannot run updater software,Software updater non avviabile
