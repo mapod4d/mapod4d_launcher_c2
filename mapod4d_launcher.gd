@@ -19,7 +19,7 @@ extends Control
 
 # ----- constants
 const M4DVERSION = {
-	'v1': 20,
+	'v1': 1,
 	'v2': 0,
 	'v3': 0,
 	'v4': 0
@@ -375,6 +375,15 @@ func _do_updater_update():
 	return ret_val
 
 
+func _do_launcher_update():
+	if _dir != null:
+		if _dir.file_exists(UPDATER_PATH + _exe_ext):
+			OS.create_process(
+				_base_path + UPDATER_PATH + _exe_ext, 
+				["++", "-m4dupdate"])
+			get_tree().quit()
+
+
 func _version_compare(
 		current_v1: int, current_v2: int, current_v3: int, current_v4: int, 
 		data):
@@ -457,8 +466,8 @@ func _on_button_update_pressed():
 			print("update m4dlauncherc2")
 			_button_update.disabled = true
 			_label_msg.text = tr("LAUNCHEROK")
-			## run updater
-			get_tree().quit()
+			## run updater (quit)
+			_do_launcher_update()
 		"mapod4dc2":
 			print("update mapod4dc2")
 			_button_update.disabled = true
