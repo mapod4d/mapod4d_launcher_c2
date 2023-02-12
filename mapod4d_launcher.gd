@@ -19,7 +19,7 @@ extends Control
 
 # ----- constants
 const M4DVERSION = {
-	'v1': 1,
+	'v1': 2,
 	'v2': 0,
 	'v3': 0,
 	'v4': 0
@@ -83,7 +83,7 @@ func _ready():
 		"Web":
 			_update_pre = "e"
 	if OS.has_feature('editor'):
-		_base_path = 'test/'
+		_base_path = 'test'
 	if OS.has_feature('standalone'):
 		_base_path = OS.get_executable_path().get_base_dir()
 
@@ -235,11 +235,12 @@ func _updater_upd():
 	if _dir != null:
 		if _dir.file_exists(UPDATER_PATH + _exe_ext):
 			var exit_code = OS.execute(
-					_base_path + UPDATER_PATH + _exe_ext, ["++", "-m4dver"])
+					_base_path + "/" + UPDATER_PATH + _exe_ext, 
+					["++", "-m4dver"])
 			print(exit_code)
 			if _dir.file_exists(UPDATER_PATH + ".json"):
 				var file = FileAccess.open(
-					_base_path + UPDATER_PATH + ".json", FileAccess.READ)
+					_base_path + "/" +UPDATER_PATH + ".json", FileAccess.READ)
 				if file != null:
 					var data = file.get_as_text()
 					var data_json = JSON.parse_string(data)
@@ -301,12 +302,12 @@ func _download_upd():
 	var download_file = null
 	match(_request):
 		"m4dupdaterc2":
-			download_file = _base_path + UPDATES_PATH + "updater"
+			download_file = _base_path + "/" + UPDATES_PATH + "updater"
 			url = _data_updater.link
 			_button_download.disabled = true
 			_info = tr("UPDATERINFO")
 		"m4dlauncherc2":
-			download_file = _base_path + UPDATES_PATH + "launcher"
+			download_file = _base_path + "/" + UPDATES_PATH + "launcher"
 			url = _data_launcher.link
 			_button_download.disabled = true
 			_info = tr("LAUNCHERINFO")
@@ -379,7 +380,7 @@ func _do_launcher_update():
 	if _dir != null:
 		if _dir.file_exists(UPDATER_PATH + _exe_ext):
 			OS.create_process(
-				_base_path + UPDATER_PATH + _exe_ext, 
+				_base_path + "/" + UPDATER_PATH + _exe_ext, 
 				["++", "-m4dupdate"])
 			get_tree().quit()
 
