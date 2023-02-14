@@ -464,14 +464,15 @@ func _on_request_download_completed(result, response_code, headers, body):
 					_set_status(M4DSTATUS.ST_LAUNCHER)
 					call_deferred("_download_upd")
 				else:
+					_set_status(M4DSTATUS.ST_UPDATEALL)
 					_button_update.disabled = false
 			M4DSTATUS.ST_LAUNCHER: ## "m4dlauncherc2":
 				_data_launcher = json.get_data()
 				_printm(_data_launcher)
 				_button_download.disabled = true
 				_label_msg.text = tr("LAUCHERDWOK")
-				_set_status(M4DSTATUS.ST_UPDATEALL)
 				if _do_launcher_download or _do_updater_download:
+					_set_status(M4DSTATUS.ST_UPDATEALL)
 					_button_update.disabled = false
 			M4DSTATUS.ST_MAPOD4D: ##"mapod4dc2":
 				_data_mapod4d = json.get_data()
